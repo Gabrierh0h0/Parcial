@@ -1,15 +1,30 @@
 import { Injectable } from '@nestjs/common';
 import { CreateBattleDto } from './dto/create-battle.dto';
 import { UpdateBattleDto } from './dto/update-battle.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Battle } from './entities/battle.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class BattlesService {
-  create(createBattleDto: CreateBattleDto) {
-    return 'This action adds a new battle';
+
+  constructor(
+    @InjectRepository(Battle)
+    private readonly battleRepository:Repository<Battle>
+  ) {}
+
+  async create(createBattleDto: CreateBattleDto) {
+  // Creamos la instancia del dish a partir del DTO
+  const newBattle = this.battleRepository.create(createBattleDto);
+
+  // Guardamos la instancia en la base de datos
+  await this.battleRepository.save(newBattle);
+  return newBattle;
   }
 
-  findAll() {
-    return `This action returns all battles`;
+  async findAll() {
+    const battle = await this.battleRepository.find({});
+    return battle;  
   }
 
   findOne(id: number) {

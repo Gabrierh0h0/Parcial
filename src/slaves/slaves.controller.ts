@@ -19,16 +19,16 @@ export class SlavesController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.slavesService.findOne(+id);
+    return this.slavesService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateSlaveDto: UpdateSlaveDto) {
-    return this.slavesService.update(+id, updateSlaveDto);
+    return this.slavesService.update(id, updateSlaveDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.slavesService.remove(+id);
+    return this.slavesService.remove(id);
   }
 }

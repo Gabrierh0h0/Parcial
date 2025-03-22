@@ -1,4 +1,4 @@
-import { IsNumber, IsString, Min, Max, IsBoolean } from "class-validator";
+import { IsString, IsBoolean } from "class-validator";
 
 export class CreateBattleDto {
 

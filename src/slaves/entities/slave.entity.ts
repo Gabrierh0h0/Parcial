@@ -38,13 +38,13 @@ export class Slave {
         nullable:false,
         default:0,
     })
-    wins?:number;
+    wins:number;
 
     @Column('numeric',{
         nullable:false,
         default:0,
     })
-    losses?:number;
+    losses:number;
 
     @Column('text',{
         nullable:false,

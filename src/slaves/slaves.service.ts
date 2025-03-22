@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { CreateSlaveDto } from './dto/create-slave.dto';
 import { UpdateSlaveDto } from './dto/update-slave.dto';
-import { Repository } from 'typeorm';
-import { Slave } from './entities/slave.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Slave } from './entities/slave.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class SlavesService {
@@ -22,21 +22,20 @@ export class SlavesService {
   return newSlave;
   }
 
-
   async findAll() {
     const slave = await this.slaveRepository.find({});
     return slave;  
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} slave`;
+  async findOne(id: string) {
+    return this.slaveRepository.findOneBy({id});
   }
 
-  update(id: number, updateSlaveDto: UpdateSlaveDto) {
+  update(id: string, updateSlaveDto: UpdateSlaveDto) {
     return `This action updates a #${id} slave`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} slave`;
+  async remove(id: string) {
+    return this.slaveRepository.delete({id});
   }
 }
