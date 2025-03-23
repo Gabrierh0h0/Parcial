@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSlaveDto } from './dto/create-slave.dto';
 import { UpdateSlaveDto } from './dto/update-slave.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,35 +7,98 @@ import { Repository } from 'typeorm';
 
 @Injectable()
 export class SlavesService {
+  dictatorsRepository: any;
+  dictatorsService: any;
 
   constructor(
     @InjectRepository(Slave)
     private readonly slaveRepository:Repository<Slave>
   ) {}
 
-  async create(createSlaveDto: CreateSlaveDto) {
-    // Creamos la instancia del dish a partir del DTO
-  const newSlave = this.slaveRepository.create(createSlaveDto);
+  async create(createSlaveDto: CreateSlaveDto, dictatorId: string) {
 
-  // Guardamos la instancia en la base de datos
-  await this.slaveRepository.save(newSlave);
-  return newSlave;
+    // Busca el dictador usando el dictatorId pasado como parámetro
+    const dictator = await this.dictatorsRepository.findOne({
+      where: { id: dictatorId },
+    });
+    if (!dictator) {
+      throw new NotFoundException(`Dictator with ID ${dictatorId} not found`);
+    }
+  
+    // Crea el esclavo y asigna el dictador
+    const slave = this.slaveRepository.create({
+      ...createSlaveDto, // Propaga las propiedades del DTO (como name)
+      dictator, // Asigna el dictador encontrado a la relación
+    });
+  
+    // Guarda el esclavo en la base de datos
+    const savedSlave = await this.slaveRepository.save(slave);
+  
+    // Actualiza el contador de esclavos del dictador
+    await this.dictatorsService.updateNumberOfSlaves(dictatorId);
+  
+    return savedSlave;
   }
 
-  async findAll() {
-    const slave = await this.slaveRepository.find({});
-    return slave;  
+  async findAll(): Promise<Slave[]> {
+    return this.slaveRepository.find({ relations: ['dictator'] }); // Carga la relación
   }
 
-  async findOne(id: string) {
-    return this.slaveRepository.findOneBy({id});
+  async findOne(id: string): Promise<Slave> {
+    const slave = await this.slaveRepository.findOne({
+      where: { id },
+      relations: ['dictator'], // Carga la relación
+    });
+    if (!slave) {
+      throw new NotFoundException(`Slave with ID ${id} not found`);
+    }
+    return slave;
   }
 
-  update(id: string, updateSlaveDto: UpdateSlaveDto) {
-    return `This action updates a #${id} slave`;
+  async update(id: string, updateSlaveDto: UpdateSlaveDto, dictatorId?: string): Promise<Slave> {
+    const slave = await this.findOne(id); // Busca el esclavo existente
+    const previousDictatorId = slave.dictator?.id; // Guarda el ID del dictador anterior
+
+    // Si se proporciona un dictatorId como parámetro, actualiza la relación
+    if (dictatorId) {
+      const dictator = await this.dictatorsRepository.findOne({
+        where: { id: dictatorId },
+      });
+      if (!dictator) {
+        throw new NotFoundException(`Dictator with ID ${dictatorId} not found`);
+      }
+      slave.dictator = dictator;
+    }
+  
+    // Actualiza las otras propiedades del esclavo
+    Object.assign(slave, updateSlaveDto);
+  
+    // Guarda los cambios
+    const updatedSlave = await this.slaveRepository.save(slave);
+  
+    // Si cambió el dictador, actualiza los contadores
+    if (dictatorId && dictatorId !== previousDictatorId) {
+      await this.dictatorsService.updateNumberOfSlaves(dictatorId); // Nuevo dictador
+      if (previousDictatorId) {
+        await this.dictatorsService.updateNumberOfSlaves(previousDictatorId); // Dictador anterior
+      }
+    }
+  
+    return updatedSlave;
   }
 
-  async remove(id: string) {
-    return this.slaveRepository.delete({id});
+  async remove(id: string): Promise<void> {
+
+    const slave = await this.findOne(id); // Busca el esclavo para obtener el dictatorId
+    if (!slave) {
+      throw new NotFoundException(`Slave with ID ${id} not found`);
+    }
+
+    const dictatorId = slave.dictator.id;
+    const result = await this.slaveRepository.delete({ id });
+
+    // Actualiza el contador de esclavos del dictador
+    await this.dictatorsService.updateNumberOfSlaves(dictatorId);
   }
+
 }

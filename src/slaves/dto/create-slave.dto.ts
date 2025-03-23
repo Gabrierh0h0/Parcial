@@ -1,4 +1,11 @@
-import { IsNumber, IsString, Min, Max } from "class-validator";
+import { IsNumber, IsString, Min, Max, IsEnum } from "class-validator";
+
+export enum SlaveStatus {
+  Dead = "dead",
+  Alive = "alive",
+  Escaped = "escaped",
+  Free = "free",
+}
 
 export class CreateSlaveDto {
 
@@ -22,12 +29,14 @@ export class CreateSlaveDto {
     readonly agility: number;
 
     @IsNumber()
+    @Min(0)
     readonly wins: number;
 
     @IsNumber()
+    @Min(0)
     readonly losses: number;
 
-    @IsString()
-    readonly status: string;
+    @IsEnum(SlaveStatus)
+    readonly status: SlaveStatus;
 
 }

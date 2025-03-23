@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Slave } from "src/slaves/entities/slave.entity";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('Dictator')
 export class Dictator {
@@ -21,12 +22,14 @@ export class Dictator {
         nullable:false,
         default:0
     })
-    number_slaves:number;
+    number_slaves?:number;
     
     @Column('numeric',{
         nullable:false,
-        default:0,
+        default:1,
     })
     loyalty:number;
 
+    @OneToMany(() => Slave, (slave) => slave.dictator)
+    slaves: Slave[];
 }

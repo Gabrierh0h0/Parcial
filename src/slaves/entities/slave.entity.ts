@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Dictator } from "src/dictators/entities/dictator.entity";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('Slave')
 export class Slave {
@@ -24,13 +25,13 @@ export class Slave {
 
     @Column('numeric',{
         nullable:false,
-        default:0
+        default:1
     })
     strength:number;
     
     @Column('numeric',{
         nullable:false,
-        default:0,
+        default:1
     })
     agility:number;
 
@@ -47,8 +48,12 @@ export class Slave {
     losses:number;
 
     @Column('text',{
-        nullable:false,
+        nullable:true,
+        default:"alive"
     })
-    status:string;
+    status?:string;
+
+    @ManyToOne(() => Dictator, (dictator) => dictator.slaves)
+    dictator: Dictator;
 
 }

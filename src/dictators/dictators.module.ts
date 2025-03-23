@@ -7,7 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 @Module({
   controllers: [DictatorsController],
   providers: [DictatorsService],
-    imports: [TypeOrmModule.forFeature([Dictator])],
-  
+  imports: [TypeOrmModule.forFeature([Dictator])],
+  exports: [DictatorsService, TypeOrmModule],
 })
 export class DictatorsModule {}
