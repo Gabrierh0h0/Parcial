@@ -35,6 +35,7 @@ export class DictatorsService {
       where: { id },
       relations: ['slaves'],
     });
+
     if (dictator) {
       dictator.number_slaves = dictator.slaves.length; // Actualiza dinámicamente
       await this.dictatorRepository.save(dictator); // Guarda el cambio

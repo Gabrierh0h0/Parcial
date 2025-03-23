@@ -23,8 +23,9 @@ export class SlavesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSlaveDto: UpdateSlaveDto) {
-    return this.slavesService.update(id, updateSlaveDto);
+  update(@Param('id') id: string, @Body() updateSlaveDto: UpdateSlaveDto & { dictatorId?: string }) {
+    const { dictatorId, ...rest } = updateSlaveDto;
+    return this.slavesService.update(id, rest, dictatorId);
   }
 
   @Delete(':id')

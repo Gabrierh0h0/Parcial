@@ -4,21 +4,24 @@ import { UpdateSlaveDto } from './dto/update-slave.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Slave } from './entities/slave.entity';
 import { Repository } from 'typeorm';
+import { Dictator } from 'src/dictators/entities/dictator.entity';
+import { DictatorsService } from 'src/dictators/dictators.service';
 
 @Injectable()
 export class SlavesService {
-  dictatorsRepository: any;
-  dictatorsService: any;
 
   constructor(
     @InjectRepository(Slave)
-    private readonly slaveRepository:Repository<Slave>
+    private readonly slaveRepository:Repository<Slave>,
+    @InjectRepository(Dictator)
+    private readonly dictatorRepository:Repository<Dictator>,
+    private readonly dictatorsService: DictatorsService, // Inyección del servicio
   ) {}
 
   async create(createSlaveDto: CreateSlaveDto, dictatorId: string) {
 
     // Busca el dictador usando el dictatorId pasado como parámetro
-    const dictator = await this.dictatorsRepository.findOne({
+    const dictator = await this.dictatorRepository.findOne({
       where: { id: dictatorId },
     });
     if (!dictator) {
@@ -61,7 +64,7 @@ export class SlavesService {
 
     // Si se proporciona un dictatorId como parámetro, actualiza la relación
     if (dictatorId) {
-      const dictator = await this.dictatorsRepository.findOne({
+      const dictator = await this.dictatorRepository.findOne({
         where: { id: dictatorId },
       });
       if (!dictator) {
@@ -93,12 +96,16 @@ export class SlavesService {
     if (!slave) {
       throw new NotFoundException(`Slave with ID ${id} not found`);
     }
-
-    const dictatorId = slave.dictator.id;
+    // Obtiene el ID del Dictator asociado al Slave, si existe. Usa optional chaining (?.) para evitar errores si dictator es null.
+    const dictatorId = slave.dictator?.id;
     const result = await this.slaveRepository.delete({ id });
 
-    // Actualiza el contador de esclavos del dictador
-    await this.dictatorsService.updateNumberOfSlaves(dictatorId);
+    // Actualiza el contador de esclavos del dictador, solo si el esclavo tiene un dictador
+    if (dictatorId) {
+      await this.dictatorsService.updateNumberOfSlaves(dictatorId);
+    }
+
+    
   }
 
 }

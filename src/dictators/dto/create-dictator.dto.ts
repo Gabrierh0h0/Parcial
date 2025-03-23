@@ -1,4 +1,4 @@
-import { IsNumber, IsString, Min, Max } from "class-validator";
+import { IsNumber, IsString, Min, Max, IsOptional } from "class-validator";
 
 export class CreateDictatorDto {
 
@@ -10,7 +10,8 @@ export class CreateDictatorDto {
     
     @IsNumber()
     @Min(0)
-    readonly number_slaves: number;
+    @IsOptional()
+    readonly number_slaves?: number;
 
     @IsNumber()
     @Min(1)
