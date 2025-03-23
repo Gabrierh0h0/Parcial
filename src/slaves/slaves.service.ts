@@ -19,28 +19,28 @@ export class SlavesService {
   ) {}
 
   async create(createSlaveDto: CreateSlaveDto, dictatorId: string) {
-
-    // Busca el dictador usando el dictatorId pasado como parámetro
+    //Busca el dictador
     const dictator = await this.dictatorRepository.findOne({
       where: { id: dictatorId },
     });
     if (!dictator) {
       throw new NotFoundException(`Dictator with ID ${dictatorId} not found`);
     }
-  
-    // Crea el esclavo y asigna el dictador
+
+    // Crea el esclavo con dictador
     const slave = this.slaveRepository.create({
       ...createSlaveDto, // Propaga las propiedades del DTO (como name)
       dictator, // Asigna el dictador encontrado a la relación
     });
-  
-    // Guarda el esclavo en la base de datos
+    
     const savedSlave = await this.slaveRepository.save(slave);
-  
-    // Actualiza el contador de esclavos del dictador
+    // Guarda el esclavo en la base de datos
+    await this.slaveRepository.save(slave); 
+    // Actualiza el contador de esclavos
     await this.dictatorsService.updateNumberOfSlaves(dictatorId);
-  
-    return savedSlave;
+    return this.findOne(slave.id);
+
+    
   }
 
   async findAll(): Promise<Slave[]> {

@@ -31,21 +31,18 @@ export class DictatorsService {
 
   async findOne(id: string) {
 
-    const dictator = await this.dictatorRepository.findOne({
+    return this.dictatorRepository.findOne({
       where: { id },
       relations: ['slaves'],
     });
 
-    if (dictator) {
-      dictator.number_slaves = dictator.slaves.length; // Actualiza dinámicamente
-      await this.dictatorRepository.save(dictator); // Guarda el cambio
-    }
-    return dictator;
   }
      
   async update(id: string, updateDictatorDto: UpdateDictatorDto) {
+
     await this.dictatorRepository.update(id, updateDictatorDto);
-    return this.findOne(id); // Esto actualizará number_slaves también
+    await this.updateNumberOfSlaves(id); // Actualiza number_slaves
+    return this.findOne(id);
   }
 
   async remove(id: string) {
@@ -54,11 +51,20 @@ export class DictatorsService {
 
   // Método adicional para actualizar number_slaves después de agregar/quitar esclavos
   async updateNumberOfSlaves(id: string) {
-    const dictator = await this.findOne(id);
-    if (dictator) {
-      dictator.number_slaves = dictator.slaves.length;
-      return this.dictatorRepository.save(dictator);
+
+    const dictator = await this.dictatorRepository.findOne({
+      where: { id },
+      relations: ['slaves'],
+    });
+  
+    if (!dictator) {
+      console.log(`Dictator ${id} no encontrado`);
+      return;
     }
+
+    dictator.number_slaves = dictator.slaves.length;
+    await this.dictatorRepository.save(dictator);
+
   }
 
   async findSlavesByDictator(dictatorId: string): Promise<Slave[]> {

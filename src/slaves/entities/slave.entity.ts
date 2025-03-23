@@ -53,7 +53,7 @@ export class Slave {
     })
     status?:string;
 
-    @ManyToOne(() => Dictator, (dictator) => dictator.slaves)
+    @ManyToOne(() => Dictator, (dictator) => dictator.slaves, { onDelete: 'SET NULL', nullable: true })
     dictator: Dictator;
 
 }
