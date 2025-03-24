@@ -1,7 +1,7 @@
 import { Battle } from "src/battles/entities/battle.entity";
 import { Dictator } from "src/dictators/entities/dictator.entity";
 import { Sponsor } from "src/sponsors/entities/sponsor.entity";
-import { Column, Entity, ManyToOne, OneToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('Slave')
 export class Slave {
