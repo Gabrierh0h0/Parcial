@@ -1,41 +1,43 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Slave } from "src/slaves/entities/slave.entity";
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, OneToOne } from "typeorm";
+
 
 @Entity('Battle')
 export class Battle {
-
     
-    @PrimaryGeneratedColumn('uuid')
-    id:string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-        
-    @PrimaryGeneratedColumn('uuid')
-    cons1:string;
+  @ManyToOne(() => Slave, (slave) => slave.battles, { nullable: false })
+  cons1: Slave; 
 
-        
-    @PrimaryGeneratedColumn('uuid')
-    cons2:string;
+  @ManyToOne(() => Slave, (slave) => slave.battles, { nullable: false })
+  cons2: Slave; 
 
-        
-    @PrimaryGeneratedColumn('uuid')
-    @Column('uuid',{
-        nullable:true,
-    })
-    winner:string;
+  @ManyToOne(() => Slave, (slave) => slave.battlesAsWinner, { nullable: true })
+  winner?: Slave; 
 
-    @Column('boolean',{
-        nullable:false,
-    })
-    death:boolean;
+  get contestants(): Slave[] {
+    return [this.cons1, this.cons2]; //Unimos los contrincantes en un solo arreglo, para slaves
+  }
 
-    @Column('text',{
-        unique:true,
-        nullable:false,
-    })
-    injuries:string;
+  @Column('boolean', {
+    nullable: false,
+    default: false,
+  })
+  death?: boolean;
 
-    @Column('date',{
-        nullable:false,
-        default:()=> 'CURRENT_TIMESTAMP'
-    })
-    date:Date;
+  @OneToOne(() => Slave, { nullable: true })
+  deadSlave?: Slave; // Esclavo que murió (null si no hubo muerte)
+
+  @Column('text', {
+    nullable: false,
+  })
+  injuries: string; 
+
+  @Column('date', {
+    nullable: false,
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  date?: Date; 
 }

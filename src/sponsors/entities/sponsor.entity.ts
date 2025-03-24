@@ -12,12 +12,7 @@ export class Sponsor {
     company_name:string;
 
     @Column('text',{
-        unique:true,
         nullable:false,
     })
     donated_items:string;
-
-    @PrimaryGeneratedColumn('uuid')
-    preferred_fighter:string;
-
 }
