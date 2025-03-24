@@ -33,14 +33,12 @@ export class SlavesService {
       dictator, // Asigna el dictador encontrado a la relación
     });
     
-    const savedSlave = await this.slaveRepository.save(slave);
     // Guarda el esclavo en la base de datos
     await this.slaveRepository.save(slave); 
     // Actualiza el contador de esclavos
     await this.dictatorsService.updateNumberOfSlaves(dictatorId);
     return this.findOne(slave.id);
 
-    
   }
 
   async findAll(): Promise<Slave[]> {

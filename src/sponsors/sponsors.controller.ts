@@ -19,16 +19,16 @@ export class SponsorsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.sponsorsService.findOne(+id);
+    return this.sponsorsService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateSponsorDto: UpdateSponsorDto) {
-    return this.sponsorsService.update(+id, updateSponsorDto);
+    return this.sponsorsService.update(id, updateSponsorDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.sponsorsService.remove(+id);
+    return this.sponsorsService.remove(id);
   }
 }
