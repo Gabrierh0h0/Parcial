@@ -1,41 +1,62 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSponsorDto } from './dto/create-sponsor.dto';
 import { UpdateSponsorDto } from './dto/update-sponsor.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Sponsor } from './entities/sponsor.entity';
 import { Repository } from 'typeorm';
+import { Slave } from 'src/slaves/entities/slave.entity';
 
 @Injectable()
 export class SponsorsService {
 
   constructor(
     @InjectRepository(Sponsor)
-    private readonly sponsorRepository:Repository<Sponsor>
+    private readonly sponsorRepository: Repository<Sponsor>,
+    @InjectRepository(Slave)
+    private readonly slaveRepository: Repository<Slave>,
   ) {}
 
   async create(createSponsorDto: CreateSponsorDto) {
-    // Creamos la instancia del dish a partir del DTO
-  const newSponsor = this.sponsorRepository.create(createSponsorDto);
+    // Busca el Slave
+    const slave = await this.slaveRepository.findOne({
+      where: { id: createSponsorDto.slaveId },
+    });
+    if (!slave) {
+      throw new NotFoundException(`Slave with ID ${createSponsorDto.slaveId} not found`);
+    }
 
-  // Guardamos la instancia en la base de datos
-  await this.sponsorRepository.save(newSponsor);
-  return newSponsor;
+    // Crea el Sponsor con el Slave
+    const sponsor = this.sponsorRepository.create({
+      company_name: createSponsorDto.company_name,
+      donated_items: createSponsorDto.donated_items,
+      slave,
+    });
+
+    // Guarda el Sponsor en la base de datos
+    const savedSponsor = await this.sponsorRepository.save(sponsor);
+
+    // Devuelve el Sponsor con los datos completos
+    return this.findOne(savedSponsor.id);
   }
 
   async findAll() {
-    const sponsor = await this.sponsorRepository.find({});
-    return sponsor;  
+    return this.sponsorRepository.find({ relations: ['slave'] });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} sponsor`;
+  async findOne(id: string) {
+    const sponsor = await this.sponsorRepository.findOne({ where: { id }, relations: ['slave'] });
+    if (!sponsor) {
+        throw new NotFoundException(`Sponsor with ID ${id} not found`);
+    }
+    return sponsor;
   }
 
-  update(id: number, updateSponsorDto: UpdateSponsorDto) {
-    return `This action updates a #${id} sponsor`;
+  async update(id: string, UpdateSponsorDto: UpdateSponsorDto) {
+    await this.sponsorRepository.update(id, UpdateSponsorDto);
+    return this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} sponsor`;
+  async remove(id: string) {
+    return this.sponsorRepository.delete(id);
   }
 }

@@ -1,5 +1,6 @@
 import { Dictator } from "src/dictators/entities/dictator.entity";
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Sponsor } from "src/sponsors/entities/sponsor.entity";
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('Slave')
 export class Slave {
@@ -55,5 +56,8 @@ export class Slave {
 
     @ManyToOne(() => Dictator, (dictator) => dictator.slaves, { onDelete: 'SET NULL', nullable: true })
     dictator: Dictator;
+
+    @OneToMany(() => Sponsor, (sponsor) => sponsor.slave)
+    sponsors: Sponsor[]; // Un Slave puede tener muchos Sponsors
 
 }

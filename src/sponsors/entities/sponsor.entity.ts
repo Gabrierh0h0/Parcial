@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Slave } from "src/slaves/entities/slave.entity";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('Sponsor')
 export class Sponsor {
@@ -12,12 +13,10 @@ export class Sponsor {
     company_name:string;
 
     @Column('text',{
-        unique:true,
         nullable:false,
     })
     donated_items:string;
 
-    @PrimaryGeneratedColumn('uuid')
-    preferred_fighter:string;
-
+    @ManyToOne(() => Slave, (slave) => slave.sponsors, { nullable: false })
+    slave: Slave; // Un Sponsor tiene un Slave
 }

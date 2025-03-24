@@ -1,4 +1,4 @@
-import { IsNumber, IsString, Min, Max } from "class-validator";
+import { IsNumber, IsString, Min, Max, IsUUID, IsOptional } from "class-validator";
 
 export class CreateSponsorDto {
 
@@ -7,5 +7,7 @@ export class CreateSponsorDto {
         
     @IsString()
     readonly donated_items: string;
-        
+
+    @IsUUID()
+    readonly slaveId: string; // Opcional al crear un Sponsor
 }
