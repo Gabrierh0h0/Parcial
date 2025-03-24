@@ -23,8 +23,9 @@ export class SponsorsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSponsorDto: UpdateSponsorDto) {
-    return this.sponsorsService.update(id, updateSponsorDto);
+  update(@Param('id') id: string, @Body() updateSlaveDto: UpdateSponsorDto & { slaveId?: string }) {
+    const { slaveId, ...rest } = updateSlaveDto;
+    return this.sponsorsService.update(id, rest, slaveId);
   }
 
   @Delete(':id')

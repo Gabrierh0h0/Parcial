@@ -17,6 +17,6 @@ export class Sponsor {
     })
     donated_items:string;
 
-    @ManyToOne(() => Slave, (slave) => slave.sponsors, { nullable: true })
+    @ManyToOne(() => Slave, (slave) => slave.sponsors, { onDelete: 'SET NULL', nullable: true })
     slave: Slave; // Un Sponsor tiene un Slave
 }

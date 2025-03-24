@@ -51,9 +51,25 @@ export class SponsorsService {
     return sponsor;
   }
 
-  async update(id: string, UpdateSponsorDto: UpdateSponsorDto) {
-    await this.sponsorRepository.update(id, UpdateSponsorDto);
-    return this.findOne(id);
+  async update(id: string, updateSponsorDto: UpdateSponsorDto, slaveId?: string): Promise<Sponsor> {
+    const sponsor = await this.findOne(id); // Busca el Sponsor existente
+
+    // Si se proporciona un slaveId, actualiza la relación
+    if (slaveId) {
+      const slave = await this.slaveRepository.findOne({ where: { id: slaveId } });
+      if (!slave) {
+        throw new NotFoundException(`Slave with ID ${slaveId} not found`);
+      }
+      sponsor.slave = slave; // Asigna el nuevo Slave
+    }
+
+    // Actualiza las otras propiedades del Sponsor
+    Object.assign(sponsor, updateSponsorDto);
+
+    // Guarda los cambios
+    const updatedSponsor = await this.sponsorRepository.save(sponsor);
+   
+    return updatedSponsor;
   }
 
   async remove(id: string) {
