@@ -3,6 +3,7 @@ import { SlavesService } from './slaves.service';
 import { CreateSlaveDto } from './dto/create-slave.dto';
 import { UpdateSlaveDto } from './dto/update-slave.dto';
 import { Dictator } from 'src/dictators/entities/dictator.entity';
+import { Battle } from 'src/battles/entities/battle.entity';
 
 @Controller('slaves')
 export class SlavesController {
@@ -20,6 +21,11 @@ export class SlavesController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.slavesService.findOne(id);
+  }
+
+  @Get(':id/battles')
+  async getBattles(@Param('id') id: string): Promise<Battle[]> {
+    return this.slavesService.getBattles(id);
   }
 
   @Patch(':id')

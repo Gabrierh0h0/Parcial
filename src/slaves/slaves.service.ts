@@ -6,6 +6,7 @@ import { Slave } from './entities/slave.entity';
 import { Repository } from 'typeorm';
 import { Dictator } from 'src/dictators/entities/dictator.entity';
 import { DictatorsService } from 'src/dictators/dictators.service';
+import { Battle } from 'src/battles/entities/battle.entity';
 
 @Injectable()
 export class SlavesService {
@@ -15,7 +16,9 @@ export class SlavesService {
     private readonly slaveRepository:Repository<Slave>,
     @InjectRepository(Dictator)
     private readonly dictatorRepository:Repository<Dictator>,
-    private readonly dictatorsService: DictatorsService, // Inyección del servicio
+    private readonly dictatorsService: DictatorsService,
+    @InjectRepository(Battle)
+    private readonly battleRepository:Repository<Battle>, // Inyección del servicio
   ) {}
 
   async create(createSlaveDto: CreateSlaveDto, dictatorId: string) {
@@ -102,8 +105,19 @@ export class SlavesService {
     if (dictatorId) {
       await this.dictatorsService.updateNumberOfSlaves(dictatorId);
     }
+  }
 
-    
+  async getBattles(slaveId: string): Promise<Battle[]> {
+    // Buscar batallas donde el esclavo sea cons1 o cons2
+    const battles = await this.battleRepository.find({
+      where: [
+        { cons1: { id: slaveId } }, // Esclavo como cons1
+        { cons2: { id: slaveId } }, // Esclavo como cons2
+      ],
+      relations: ['cons1', 'cons2', 'winner', 'deadSlave'], // Cargar relaciones
+    });
+
+    return battles;
   }
 
 }

@@ -9,5 +9,5 @@ export class CreateSponsorDto {
     readonly donated_items: string;
 
     @IsUUID()
-    readonly slaveId: string; // Opcional al crear un Sponsor
+    readonly slaveId: string;
 }

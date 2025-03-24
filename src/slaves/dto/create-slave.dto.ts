@@ -1,4 +1,4 @@
-import { IsNumber, IsString, Min, Max, IsEnum } from "class-validator";
+import { IsNumber, IsString, Min, Max, IsEnum, IsUUID } from "class-validator";
 
 export enum SlaveStatus {
   Dead = "dead",

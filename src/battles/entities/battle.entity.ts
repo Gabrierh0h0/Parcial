@@ -8,7 +8,7 @@ export class Battle {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Slave, (slave) => slave.battles, { nullable: false })
+  @ManyToOne(() => Slave, (slave) => slave.battles, { nullable: false }) //relacion bidireccional 
   cons1: Slave; 
 
   @ManyToOne(() => Slave, (slave) => slave.battles, { nullable: false })
@@ -27,7 +27,7 @@ export class Battle {
   })
   death?: boolean;
 
-  @OneToOne(() => Slave, { nullable: true })
+  @ManyToOne(() => Slave, { nullable: true})
   deadSlave?: Slave; // Esclavo que murió (null si no hubo muerte)
 
   @Column('text', {

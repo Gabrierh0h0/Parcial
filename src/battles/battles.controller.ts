@@ -8,27 +8,27 @@ export class BattlesController {
   constructor(private readonly battlesService: BattlesService) {}
 
   @Post()
-  create(@Body() createBattleDto: CreateBattleDto) {
+  async create(@Body() createBattleDto: CreateBattleDto) {
     return this.battlesService.create(createBattleDto);
   }
 
   @Get()
-  findAll() {
+  async findAll() {
     return this.battlesService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string) {
     return this.battlesService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBattleDto: UpdateBattleDto) {
+  async update(@Param('id') id: string, @Body() updateBattleDto: UpdateBattleDto) {
     return this.battlesService.update(id, updateBattleDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string) {
     return this.battlesService.remove(id);
   }
 }
