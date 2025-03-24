@@ -63,8 +63,25 @@ export class BattlesService {
       await this.slaveRepository.save(loser)
       await this.slaveRepository.save(winner)
 
-      const newBattle = this.battleRepository.create(createBattleDto);
+      const newBattle = this.battleRepository.create({
+        cons1,
+        cons2,
+        winner,
+        death: createBattleDto.death || false,
+        injuries: createBattleDto.injuries,
+      });
       await this.battleRepository.save(newBattle);
+      return newBattle;
+    } else {
+    // Si no hay ganador definido, creamos la batalla sin asignar un ganador
+    const newBattle = this.battleRepository.create({
+      cons1,
+      cons2,
+      death: createBattleDto.death || false,
+      injuries: createBattleDto.injuries,
+    });
+      await this.battleRepository.save(newBattle);
+      return newBattle;
     }
   }
 
