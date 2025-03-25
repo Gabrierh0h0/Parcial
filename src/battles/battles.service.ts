@@ -9,25 +9,22 @@ import { SlaveStatus } from 'src/slaves/dto/create-slave.dto';
 
 @Injectable()
 export class BattlesService {
-  
-
   constructor(
     @InjectRepository(Battle)
-    private readonly battleRepository:Repository<Battle>,
+    private readonly battleRepository: Repository<Battle>,
     @InjectRepository(Slave)
     private readonly slaveRepository: Repository<Slave>,
   ) {}
 
   async create(createBattleDto: CreateBattleDto) {
-
-    const cons1 = await this.slaveRepository.findOne({where: {id:createBattleDto.cons1Id}})
+    const cons1 = await this.slaveRepository.findOne({ where: { id: createBattleDto.cons1Id } });
     if (!cons1) {
       throw new NotFoundException(`Slave with ID ${createBattleDto.cons1Id} not found`);
     }
     if (cons1.status === SlaveStatus.Dead) {
       throw new NotFoundException(`Slave with ID ${createBattleDto.cons1Id} is dead and cannot fight`);
     }
-    const cons2 = await this.slaveRepository.findOne({where: {id:createBattleDto.cons2Id}})
+    const cons2 = await this.slaveRepository.findOne({ where: { id: createBattleDto.cons2Id } });
     if (!cons2) {
       throw new NotFoundException(`Slave with ID ${createBattleDto.cons2Id} not found`);
     }
@@ -35,34 +32,32 @@ export class BattlesService {
       throw new NotFoundException(`Slave with ID ${createBattleDto.cons2Id} is dead and cannot fight`);
     }
 
-    let loser: Slave | null
-    let winner: Slave | null
-    
-    if(createBattleDto.winnerId){
-      winner = await this.slaveRepository.findOne({where: {id:createBattleDto.winnerId}})
+    let loser: Slave | null;
+    let winner: Slave | null;
 
+    if (createBattleDto.winnerId) {
+      winner = await this.slaveRepository.findOne({ where: { id: createBattleDto.winnerId } });
       if (!winner) {
         throw new NotFoundException(`Winner with ID ${createBattleDto.winnerId} not found`);
       }
 
-      if(winner.id !== cons1.id && winner.id !== cons2.id ){
+      if (winner.id !== cons1.id && winner.id !== cons2.id) {
         throw new NotFoundException(`winner must be one of the contenders`);
       }
 
-      if(winner === cons1){
-        loser = cons2
+      if (winner === cons1) {
+        loser = cons2;
+      } else {
+        loser = cons1;
       }
-      else{
-        loser = cons1
-      }
-      loser.losses +=1
-      winner.wins += 1
-      if(createBattleDto.death){
-        loser.status = "dead"    
+      loser.losses = Number(loser.losses) + 1;
+      winner.wins = Number(winner.wins) + 1;
+      if (createBattleDto.death) {
+        loser.status = "dead";
       }
 
-      await this.slaveRepository.save(loser)
-      await this.slaveRepository.save(winner)
+      await this.slaveRepository.save(loser);
+      await this.slaveRepository.save(winner);
 
       const newBattle = this.battleRepository.create({
         cons1,
@@ -74,13 +69,13 @@ export class BattlesService {
       await this.battleRepository.save(newBattle);
       return newBattle;
     } else {
-    // Si no hay ganador definido, creamos la batalla sin asignar un ganador
-    const newBattle = this.battleRepository.create({
-      cons1,
-      cons2,
-      death: createBattleDto.death || false,
-      injuries: createBattleDto.injuries,
-    });
+      // Si no hay ganador definido, creamos la batalla sin asignar un ganador
+      const newBattle = this.battleRepository.create({
+        cons1,
+        cons2,
+        death: createBattleDto.death || false,
+        injuries: createBattleDto.injuries,
+      });
       await this.battleRepository.save(newBattle);
       return newBattle;
     }
@@ -107,7 +102,7 @@ export class BattlesService {
   }
 
   //------------------------------------------------------------------------------------------------------------
-  //Todos estos metodo los usa unica y exclusivamente el update 
+  //Todos estos metodo los usa unica y exclusivamente el update
 
   private async getWinner(winnerId: string, cons1: Slave, cons2: Slave): Promise<Slave> {
     const winner = await this.slaveRepository.findOne({ where: { id: winnerId } });
@@ -117,7 +112,7 @@ export class BattlesService {
     if (winner.id !== cons1.id && winner.id !== cons2.id) {
       throw new BadRequestException(`Winner must be one of the contenders`);
     }
-    winner.wins += 1;
+    winner.wins = Number(winner.wins) + 1;
     await this.slaveRepository.save(winner);
     return winner;
   }
@@ -129,14 +124,14 @@ export class BattlesService {
       }
       const loser = this.determineLoser(winner, cons1, cons2);
       loser.status = SlaveStatus.Dead;
-      loser.losses += 1;
+      loser.losses = Number(loser.losses) + 1;
       this.slaveRepository.save(loser);
       return { deadSlave: loser };
     }
 
     if (winner) {
       const loser = this.determineLoser(winner, cons1, cons2);
-      loser.losses += 1;
+      loser.losses = Number(loser.losses) + 1;
       this.slaveRepository.save(loser);
     }
 
@@ -158,34 +153,34 @@ export class BattlesService {
       where: { id },
       relations: ['cons1', 'cons2', 'winner', 'deadSlave'],
     });
-  
+
     if (!battle) {
       throw new NotFoundException(`Battle with ID ${id} not found`);
     }
-  
+
     // Manejar el nuevo ganador si se proporciona
     if (updateBattleDto.winnerId !== undefined) {
       // Revertir estadísticas del ganador anterior si existe
       if (battle.winner) {
-        battle.winner.wins -= 1;
+        battle.winner.wins = Number(battle.winner.wins) - 1;
         await this.slaveRepository.save(battle.winner);
       }
-  
+
       // Asignar el nuevo ganador (o null)
-      battle.winner = updateBattleDto.winnerId // esto continua abajito
+      battle.winner = updateBattleDto.winnerId
         ? await this.getWinner(updateBattleDto.winnerId, battle.cons1, battle.cons2)
         : undefined;
     }
-  
+
     // Manejar cambios en death o winner
     if (updateBattleDto.winnerId !== undefined || updateBattleDto.death !== undefined) {
       // Revertir el deadSlave anterior si existe
       if (battle.deadSlave) {
         battle.deadSlave.status = SlaveStatus.Alive;
-        battle.deadSlave.losses -= 1;
+        battle.deadSlave.losses = Number(battle.deadSlave.losses) - 1;
         await this.slaveRepository.save(battle.deadSlave);
       }
-  
+
       // Aplicar el nuevo resultado
       const battleResult = this.processBattleResult(
         battle.cons1,
@@ -196,12 +191,12 @@ export class BattlesService {
       battle.deadSlave = battleResult.deadSlave ?? undefined;
       battle.death = updateBattleDto.death ?? battle.death;
     }
-  
+
     // Actualizar injuries si se proporciona
     if (updateBattleDto.injuries !== undefined) {
       battle.injuries = updateBattleDto.injuries;
     }
-  
+
     // Guardar y devolver
     return this.battleRepository.save(battle);
   }
@@ -215,12 +210,12 @@ export class BattlesService {
       throw new NotFoundException(`Battle with ID ${id} not found`);
     }
     if (battle.winner) {
-      battle.winner.wins -= 1;
+      battle.winner.wins = Number(battle.winner.wins) - 1;
       await this.slaveRepository.save(battle.winner);
     }
     if (battle.deadSlave) {
       battle.deadSlave.status = SlaveStatus.Alive;
-      battle.deadSlave.losses -= 1;
+      battle.deadSlave.losses = Number(battle.deadSlave.losses) - 1;
       await this.slaveRepository.save(battle.deadSlave);
     }
 

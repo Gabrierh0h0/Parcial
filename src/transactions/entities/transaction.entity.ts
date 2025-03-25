@@ -1,31 +1,23 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Dictator } from 'src/dictators/entities/dictator.entity';
 
 @Entity('Transaction')
 export class Transaction {
-    
-    @PrimaryGeneratedColumn('uuid')
-    id:string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @PrimaryGeneratedColumn('uuid')
-    buyer_id:string;
+  @ManyToOne(() => Dictator, (dictator) => dictator.transactionsAsBuyer, { nullable: false })
+  buyer: Dictator;
 
-    @PrimaryGeneratedColumn('uuid')
-    seller_id:string;
+  @ManyToOne(() => Dictator, (dictator) => dictator.transactionsAsSeller, { nullable: true })
+  seller: Dictator | null;
 
-    @Column('text',{
-        nullable:false,
-    })
-    item:string;
+  @Column('text', { nullable: false })
+  item: string;
 
-    @Column('numeric',{
-        nullable:false,
-        default:0
-    })
-    amount:number;
+  @Column('numeric', { nullable: false, default: 0 })
+  amount: number;
 
-    @Column('text',{
-        nullable:false,
-    })
-    status:string;
+  @Column('text', { nullable: false })
+  status: string;
 }
-

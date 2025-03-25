@@ -66,4 +66,5 @@ export class Slave {
 
     @OneToMany(() => Battle, (battle) => battle.winner)
     battlesAsWinner: Battle[]; //Batallas donde gano
+    
 }

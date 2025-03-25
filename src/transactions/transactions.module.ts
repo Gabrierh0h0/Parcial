@@ -1,13 +1,16 @@
-import { Module } from '@nestjs/common';
-import { TransactionsService } from './transactions.service';
-import { TransactionsController } from './transactions.controller';
-import { Transaction } from './entities/transaction.entity';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { TransactionsService } from './transactions.service';
+import { Transaction } from './entities/transaction.entity';
+import { DictatorsModule } from '../dictators/dictators.module';
+import { TransactionsController } from './transactions.controller';
+import { Dictator } from 'src/dictators/entities/dictator.entity';
 
 @Module({
-  controllers: [TransactionsController],
-  providers: [TransactionsService],
-    imports: [TypeOrmModule.forFeature([Transaction])],
-  
+
+  controllers:[TransactionsController],
+  providers:[TransactionsService],
+  imports:[TypeOrmModule.forFeature([Transaction, Dictator]),DictatorsModule],
+  exports:[TypeOrmModule]
 })
 export class TransactionsModule {}

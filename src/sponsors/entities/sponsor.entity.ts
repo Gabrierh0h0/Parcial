@@ -19,4 +19,5 @@ export class Sponsor {
 
     @ManyToOne(() => Slave, (slave) => slave.sponsors, { onDelete: 'SET NULL', nullable: true })
     slave: Slave; // Un Sponsor tiene un Slave
+    
 }

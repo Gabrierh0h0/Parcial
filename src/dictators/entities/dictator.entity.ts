@@ -1,4 +1,5 @@
 import { Slave } from "src/slaves/entities/slave.entity";
+import { Transaction } from "src/transactions/entities/transaction.entity";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('Dictator')
@@ -32,4 +33,10 @@ export class Dictator {
 
     @OneToMany(() => Slave, (slave) => slave.dictator)
     slaves: Slave[];
+
+    @OneToMany(() => Transaction, (transaction) => transaction.buyer)
+    transactionsAsBuyer: Transaction[];
+
+    @OneToMany(() => Transaction, (transaction) => transaction.seller)
+    transactionsAsSeller: Transaction[];
 }

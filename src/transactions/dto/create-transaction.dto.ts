@@ -1,14 +1,23 @@
-import { IsNumber, IsString, Min, Max } from "class-validator";
+import { IsString, IsNotEmpty, IsNumber } from 'class-validator';
 
 export class CreateTransactionDto {
-    
-    @IsString()
-    readonly item: string;
-    
-    @IsNumber()
-    readonly amount: number;
+  @IsString()
+  @IsNotEmpty()
+  buyer: string; // ID del Dictator que compra
 
-    @IsString()
-    readonly status: string;
+  @IsString()
+  @IsNotEmpty()
+  seller: string; // ID del Dictator que vende
 
+  @IsString()
+  @IsNotEmpty()
+  item: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  amount: number;
+
+  @IsString()
+  @IsNotEmpty()
+  status: string;
 }
