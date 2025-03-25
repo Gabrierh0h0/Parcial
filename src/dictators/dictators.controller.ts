@@ -37,4 +37,9 @@ export class DictatorsController {
   remove(@Param('id') id: string) {
     return this.dictatorsService.remove(id);
   }
+  
+  @Post('login')
+  login(@Body() loginDTO) {
+    return this.dictatorsService.login(loginDTO)
+  }
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateDictatorDto } from './dto/create-dictator.dto';
 import { UpdateDictatorDto } from './dto/update-dictator.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -27,9 +27,18 @@ export class DictatorsService {
     return newDictator;
   }
 
-  login(loginDTO: LoginDTO) {
-    console.log(loginDTO);
-    return "mensajito"
+  async login(loginDTO: LoginDTO) {
+    const {name, password} = loginDTO;
+    const dictator = await this.dictatorRepository.findOneBy({ name: name});
+    if (!dictator) {
+      throw new NotFoundException('Credenciales invalidas');
+    }
+    const valid = bcrypt.compareSync(password, dictator.password);
+    if(!valid) {
+      throw new NotFoundException('Credenciales invalidas');
+    }
+
+    return "login exitoso"
   }
   
   findAll() {
