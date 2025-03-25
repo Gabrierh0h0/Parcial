@@ -5,6 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Dictator } from './entities/dictator.entity';
 import { Repository } from 'typeorm';
 import { Slave } from 'src/slaves/entities/slave.entity';
+import * as bcrypt from 'bcrypt'; //Para encriptar
+import { LoginDTO } from './dto/login.dto';
 
 @Injectable()
 export class DictatorsService {
@@ -18,11 +20,16 @@ export class DictatorsService {
   
   async create(createDictatorDto: CreateDictatorDto) {
     // Creamos la instancia del dish a partir del DTO
-    const newDictator = this.dictatorRepository.create(createDictatorDto);
-  
+    const newDictator = this.dictatorRepository.create({...createDictatorDto, password:bcrypt.hashSync(createDictatorDto.password, 10) });
+
     // Guardamos la instancia en la base de datos
     await this.dictatorRepository.save(newDictator);
     return newDictator;
+  }
+
+  login(loginDTO: LoginDTO) {
+    console.log(loginDTO);
+    return "mensajito"
   }
   
   findAll() {

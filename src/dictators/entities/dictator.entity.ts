@@ -39,4 +39,10 @@ export class Dictator {
 
     @OneToMany(() => Transaction, (transaction) => transaction.seller)
     transactionsAsSeller: Transaction[];
+
+    @Column('text',{
+        //RECUERDA CAMBIAR ESTOO
+        nullable:true,
+    })
+    password:string;
 }
