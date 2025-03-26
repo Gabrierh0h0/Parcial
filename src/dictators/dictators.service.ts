@@ -66,8 +66,8 @@ export class DictatorsService {
   }
      
   async update(id: string, updateDictatorDto: UpdateDictatorDto) {
-
-    await this.dictatorRepository.update(id, updateDictatorDto);
+    // Actualiza los datos en general del dictator y actualiza y encripta la password
+    await this.dictatorRepository.update(id ,{...updateDictatorDto, password:bcrypt.hashSync(updateDictatorDto.password, 10) });
     await this.updateNumberOfSlaves(id); // Actualiza number_slaves
     return this.findOne(id);
   }

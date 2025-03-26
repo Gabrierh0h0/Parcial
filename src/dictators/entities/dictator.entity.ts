@@ -10,6 +10,7 @@ export class Dictator {
 
     @Column('text',{
         nullable:false,
+        unique: true,
     })
     name:string;
 
@@ -41,8 +42,7 @@ export class Dictator {
     transactionsAsSeller: Transaction[];
 
     @Column('text',{
-        //RECUERDA CAMBIAR ESTOO
-        nullable:true,
+        nullable:false,
     })
     password:string;
 }
