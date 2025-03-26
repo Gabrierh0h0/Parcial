@@ -6,14 +6,16 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Injectable } from "@nestjs/common";
 
-
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy){
     constructor(
         @InjectRepository(Dictator)
         private readonly dictatorRepository:Repository<Dictator>
     ){
-        super({ jwtFromRequest:ExtractJwt.fromAuthHeaderAsBearerToken(), secretOrKey: process.env.SECRET_KEY });
+        super({ 
+            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), 
+            secretOrKey: process.env.SECRET_KEY 
+        });
     }
     
     async validate(payload:JwtPayload){

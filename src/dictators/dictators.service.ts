@@ -7,6 +7,8 @@ import { Repository } from 'typeorm';
 import { Slave } from 'src/slaves/entities/slave.entity';
 import * as bcrypt from 'bcrypt'; //Para encriptar
 import { LoginDTO } from './dto/login.dto';
+import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from 'src/interface/JwtPayload';
 
 @Injectable()
 export class DictatorsService {
@@ -16,6 +18,9 @@ export class DictatorsService {
     private readonly dictatorRepository:Repository<Dictator>,
     @InjectRepository(Slave)
     private readonly slaveRepository: Repository<Slave>,
+
+    private readonly jwtService: JwtService
+
   ) {}
   
   async create(createDictatorDto: CreateDictatorDto) {
@@ -25,6 +30,11 @@ export class DictatorsService {
     // Guardamos la instancia en la base de datos
     await this.dictatorRepository.save(newDictator);
     return newDictator;
+  }
+
+  private getJwtToken(jwtPayload: JwtPayload) {
+    const token = this.jwtService.sign(jwtPayload);
+    return token;
   }
 
   async login(loginDTO: LoginDTO) {
@@ -37,8 +47,9 @@ export class DictatorsService {
     if(!valid) {
       throw new NotFoundException('Credenciales invalidas');
     }
-
-    return "login exitoso"
+    const jwtPayload: JwtPayload = {name};
+    const token = this.getJwtToken(jwtPayload); 
+    return {dictator, token};
   }
   
   findAll() {
