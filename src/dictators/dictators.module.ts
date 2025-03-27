@@ -11,6 +11,7 @@ import { PassportModule } from '@nestjs/passport';
   controllers: [DictatorsController],
   providers: [DictatorsService],
   imports: [TypeOrmModule.forFeature([Dictator, Slave]), 
+  // jwt es la estrategia por defecto
   PassportModule.register({ defaultStrategy: 'jwt'}),
   JwtModule.registerAsync({
     imports: [],

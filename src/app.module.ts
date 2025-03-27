@@ -11,13 +11,13 @@ import { ConfigModule } from '@nestjs/config';
 
 @Module({
 
-  imports: [SlavesModule, ConfigModule.forRoot(),//Me permite usar variables de entorno
+  imports: [SlavesModule, BattlesModule, DictatorsModule, SponsorsModule, TransactionsModule, ConfigModule.forRoot(),//Me permite usar variables de entorno
     TypeOrmModule.forRoot({//Configuración de la base de datos
       type: 'postgres',
       url: process.env.DATABASE_URL,
       autoLoadEntities: true,
       synchronize: true, // Recuerda cambiar a false en producción
-    }),BattlesModule, DictatorsModule, SponsorsModule, TransactionsModule],
+    })],
   controllers: [AppController],
   providers: [AppService],
 

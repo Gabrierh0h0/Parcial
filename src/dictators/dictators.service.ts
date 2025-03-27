@@ -41,7 +41,7 @@ export class DictatorsService {
     const {name, password} = loginDTO;
     const dictator = await this.dictatorRepository.findOneBy({ name: name});
     if (!dictator) {
-      throw new NotFoundException('Credenciales invalidas');
+      throw new NotFoundException('Usted no es un dictator, no puede ingresar a la plataforma');
     }
     const valid = bcrypt.compareSync(password, dictator.password);
     if(!valid) {
