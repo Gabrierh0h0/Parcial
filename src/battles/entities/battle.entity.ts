@@ -27,9 +27,6 @@ export class Battle {
   })
   death?: boolean;
 
-  @ManyToOne(() => Slave, { nullable: true})
-  deadSlave?: Slave; // Esclavo que murió (null si no hubo muerte)
-
   @Column('text', {
     nullable: false,
   })

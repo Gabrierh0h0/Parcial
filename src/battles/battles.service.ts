@@ -17,6 +17,7 @@ export class BattlesService {
   ) {}
 
   async create(createBattleDto: CreateBattleDto) {
+    // Buscar los esclavos contendientes (cons1 y cons2)
     const cons1 = await this.slaveRepository.findOne({ where: { id: createBattleDto.cons1Id } });
     if (!cons1) {
       throw new NotFoundException(`Slave with ID ${createBattleDto.cons1Id} not found`);
@@ -31,80 +32,34 @@ export class BattlesService {
     if (cons2.status === SlaveStatus.Dead || cons2.status === SlaveStatus.Free) {
       throw new NotFoundException(`Slave with ID ${createBattleDto.cons2Id} is dead or free and cannot fight`);
     }
-
-    let loser: Slave | null;
-    let winner: Slave | null;
-
+  
+    let winner: Slave | undefined;
+  
+    // Si se proporciona un ganador (winnerId), procesar la lógica de victoria/derrota
     if (createBattleDto.winnerId) {
-      winner = await this.slaveRepository.findOne({ where: { id: createBattleDto.winnerId } });
-      if (!winner) {
-        throw new NotFoundException(`Winner with ID ${createBattleDto.winnerId} not found`);
-      }
+      // Usamos getWinner para buscar y validar al ganador
+      winner = await this.getWinner(createBattleDto.winnerId, cons1, cons2);
+      // Procesamos el resultado de la batalla (actualiza estadísticas y si hay muerte se muere el perdedor)
+      this.processBattleResult(cons1, cons2, winner, createBattleDto.death);
 
-      if (winner.id !== cons1.id && winner.id !== cons2.id) {
-        throw new NotFoundException(`winner must be one of the contenders`);
-      }
-      
-    // Asigna winner y loser
-    if (winner.id === cons1.id) {
-      winner = cons1;
-      loser = cons2;
     } else {
-      winner = cons2;
-      loser = cons1;
+      // Si no hay ganador, procesamos el resultado (puede haber muerte se mueren los 2)
+      this.processBattleResult(cons1, cons2, undefined, createBattleDto.death);
+
     }
-      
-      loser.losses = Number(loser.losses) + 1;
-      winner.wins = Number(winner.wins) + 1;
-      if (createBattleDto.death) {
-        loser.status = SlaveStatus.Dead;
-      }
 
-      await this.slaveRepository.save([winner, loser]);
-
-      const newBattle = this.battleRepository.create({
-        cons1,
-        cons2,
-        winner,
-        death: createBattleDto.death || false,
-        injuries: createBattleDto.injuries,
-      });
-      await this.battleRepository.save(newBattle);
-      return newBattle;
-    } else {
-
-      // Si no hay ganador definido
-      if (createBattleDto.death) {
-        // Si death es true, ambos esclavos mueren
-        cons1.status = SlaveStatus.Dead;
-        cons2.status = SlaveStatus.Dead;
-        cons1.losses = Number(cons1.losses) + 1;
-        cons2.losses = Number(cons1.losses) + 1;
-
-
-        await this.slaveRepository.save([cons1, cons2]); // Guarda los cambios en ambos
-      }
-
-      const newBattle = this.battleRepository.create({
-        cons1,
-        cons2,
-        death: createBattleDto.death || false,
-        injuries: createBattleDto.injuries,
-      });
-      await this.battleRepository.save(newBattle);
-      return newBattle;
-
-
-      // Si no hay ganador definido, creamos la batalla sin asignar un ganador
-      /*const newBattle = this.battleRepository.create({
-        cons1,
-        cons2,
-        death: createBattleDto.death || false,
-        injuries: createBattleDto.injuries,
-      });
-      await this.battleRepository.save(newBattle);
-      return newBattle;*/
-    }
+    // Crear la batalla
+    const newBattle = this.battleRepository.create({
+      cons1,
+      cons2,
+      winner,
+      death: createBattleDto.death || false,
+      injuries: createBattleDto.injuries,
+    });
+  
+    // Guardar y retornar la batalla
+    await this.battleRepository.save(newBattle);
+    return newBattle;
   }
 
   async findAll(): Promise<Battle[]> {
@@ -143,25 +98,33 @@ export class BattlesService {
     return winner;
   }
 
-  private processBattleResult(cons1: Slave, cons2: Slave, winner: Slave | null, death: boolean | undefined): { deadSlave: Slave | null } {
+  private processBattleResult(cons1: Slave, cons2: Slave, winner: Slave | undefined, death: boolean | undefined): void {
     if (death) {
       if (!winner) {
-        throw new BadRequestException(`A winner must be specified if death is true`);
+        // Si death es true pero no hay ganador, ambos esclavos mueren
+        cons1.status = SlaveStatus.Dead;
+        cons2.status = SlaveStatus.Dead;
+        cons1.losses = Number(cons1.losses) + 1;
+        cons2.losses = Number(cons2.losses) + 1;
+        cons1.wins = Number(cons1.wins) + 1; // Ambos "ganan" y "pierden"
+        cons2.wins = Number(cons2.wins) + 1;
+        this.slaveRepository.save([cons1, cons2]); // Guardamos ambos
+        return;
       }
+
+      // Si hay ganador, el perdedor muere
       const loser = this.determineLoser(winner, cons1, cons2);
       loser.status = SlaveStatus.Dead;
       loser.losses = Number(loser.losses) + 1;
       this.slaveRepository.save(loser);
-      return { deadSlave: loser };
+      return; //aqui se sale y no entra al otro 
     }
-
+  
     if (winner) {
       const loser = this.determineLoser(winner, cons1, cons2);
       loser.losses = Number(loser.losses) + 1;
       this.slaveRepository.save(loser);
     }
-
-    return { deadSlave: null };
   }
 
   private determineLoser(winner: Slave, cons1: Slave, cons2: Slave): Slave {
@@ -177,52 +140,52 @@ export class BattlesService {
     // Buscar la batalla con sus relaciones
     const battle = await this.battleRepository.findOne({
       where: { id },
-      relations: ['cons1', 'cons2', 'winner', 'deadSlave'],
+      relations: ['cons1', 'cons2', 'winner'],
     });
-
+  
     if (!battle) {
       throw new NotFoundException(`Battle with ID ${id} not found`);
     }
-
+  
+    // Revertir estadísticas y estados anteriores
+    if (battle.winner) {
+      // Revertir victorias del ganador anterior
+      battle.winner.wins = Number(battle.winner.wins) - 1;
+      await this.slaveRepository.save(battle.winner);
+  
+      // Revertir derrotas y estado del perdedor anterior
+      const previousLoser = this.determineLoser(battle.winner, battle.cons1, battle.cons2);
+      previousLoser.losses = Number(previousLoser.losses) - 1;
+      if (battle.death) {
+        previousLoser.status = SlaveStatus.Alive; // Revertir muerte
+      }
+      await this.slaveRepository.save(previousLoser);
+    } else if (battle.death) {
+      // Si no había ganador pero death era true, ambos esclavos estaban muertos
+      battle.cons1.status = SlaveStatus.Alive;
+      battle.cons2.status = SlaveStatus.Alive;
+      battle.cons1.losses = Number(battle.cons1.losses) - 1;
+      battle.cons2.losses = Number(battle.cons2.losses) - 1;
+      await this.slaveRepository.save([battle.cons1, battle.cons2]);
+    }
+  
     // Manejar el nuevo ganador si se proporciona
     if (updateBattleDto.winnerId !== undefined) {
-      // Revertir estadísticas del ganador anterior si existe
-      if (battle.winner) {
-        battle.winner.wins = Number(battle.winner.wins) - 1;
-        await this.slaveRepository.save(battle.winner);
-      }
-
-      // Asignar el nuevo ganador (o null)
-      battle.winner = updateBattleDto.winnerId
-        ? await this.getWinner(updateBattleDto.winnerId, battle.cons1, battle.cons2)
-        : undefined;
+      battle.winner = await this.getWinner(updateBattleDto.winnerId, battle.cons1, battle.cons2);
     }
-
+  
     // Manejar cambios en death o winner
     if (updateBattleDto.winnerId !== undefined || updateBattleDto.death !== undefined) {
-      // Revertir el deadSlave anterior si existe
-      if (battle.deadSlave) {
-        battle.deadSlave.status = SlaveStatus.Alive;
-        battle.deadSlave.losses = Number(battle.deadSlave.losses) - 1;
-        await this.slaveRepository.save(battle.deadSlave);
-      }
-
-      // Aplicar el nuevo resultado
-      const battleResult = this.processBattleResult(
-        battle.cons1,
-        battle.cons2,
-        battle.winner ?? null,
-        updateBattleDto.death ?? battle.death, // Usar el nuevo valor o el existente
-      );
-      battle.deadSlave = battleResult.deadSlave ?? undefined;
-      battle.death = updateBattleDto.death ?? battle.death;
+      const newDeath = updateBattleDto.death ?? battle.death; // Usar el nuevo valor o el existente
+      this.processBattleResult(battle.cons1, battle.cons2, battle.winner, newDeath);
+      battle.death = newDeath;
     }
-
+  
     // Actualizar injuries si se proporciona
     if (updateBattleDto.injuries !== undefined) {
       battle.injuries = updateBattleDto.injuries;
     }
-
+  
     // Guardar y devolver
     return this.battleRepository.save(battle);
   }
@@ -230,21 +193,36 @@ export class BattlesService {
   async remove(id: string): Promise<void> {
     const battle = await this.battleRepository.findOne({
       where: { id },
-      relations: ['winner', 'deadSlave'],
+      relations: ['cons1', 'cons2', 'winner'],
     });
+  
     if (!battle) {
       throw new NotFoundException(`Battle with ID ${id} not found`);
     }
+  
+    // Revertir estadísticas y estados
     if (battle.winner) {
+      // Revertir victorias del ganador
       battle.winner.wins = Number(battle.winner.wins) - 1;
       await this.slaveRepository.save(battle.winner);
+  
+      // Revertir derrotas y estado del perdedor
+      const loser = this.determineLoser(battle.winner, battle.cons1, battle.cons2);
+      loser.losses = Number(loser.losses) - 1;
+      if (battle.death) {
+        loser.status = SlaveStatus.Alive; // Revertir muerte
+      }
+      await this.slaveRepository.save(loser);
+    } else if (battle.death) {
+      // Si no había ganador pero death era true, ambos esclavos estaban muertos
+      battle.cons1.status = SlaveStatus.Alive;
+      battle.cons2.status = SlaveStatus.Alive;
+      battle.cons1.losses = Number(battle.cons1.losses) - 1;
+      battle.cons2.losses = Number(battle.cons2.losses) - 1;
+      await this.slaveRepository.save([battle.cons1, battle.cons2]);
     }
-    if (battle.deadSlave) {
-      battle.deadSlave.status = SlaveStatus.Alive;
-      battle.deadSlave.losses = Number(battle.deadSlave.losses) - 1;
-      await this.slaveRepository.save(battle.deadSlave);
-    }
-
-    const result = await this.battleRepository.delete(id);
+  
+    // Eliminar la batalla
+    await this.battleRepository.delete(id);
   }
 }
