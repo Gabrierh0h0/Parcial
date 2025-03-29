@@ -72,7 +72,19 @@ export class BattlesService {
       await this.battleRepository.save(newBattle);
       return newBattle;
     } else {
-      // Si no hay ganador definido, creamos la batalla sin asignar un ganador
+
+      // Si no hay ganador definido
+      if (createBattleDto.death) {
+        // Si death es true, ambos esclavos mueren
+        cons1.status = SlaveStatus.Dead;
+        cons2.status = SlaveStatus.Dead;
+        cons1.losses = Number(cons1.losses) + 1;
+        cons2.losses = Number(cons1.losses) + 1;
+
+
+        await this.slaveRepository.save([cons1, cons2]); // Guarda los cambios en ambos
+      }
+
       const newBattle = this.battleRepository.create({
         cons1,
         cons2,
@@ -81,6 +93,17 @@ export class BattlesService {
       });
       await this.battleRepository.save(newBattle);
       return newBattle;
+
+
+      // Si no hay ganador definido, creamos la batalla sin asignar un ganador
+      /*const newBattle = this.battleRepository.create({
+        cons1,
+        cons2,
+        death: createBattleDto.death || false,
+        injuries: createBattleDto.injuries,
+      });
+      await this.battleRepository.save(newBattle);
+      return newBattle;*/
     }
   }
 
