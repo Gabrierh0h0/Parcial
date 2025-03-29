@@ -45,19 +45,29 @@ export class BattlesService {
         throw new NotFoundException(`winner must be one of the contenders`);
       }
 
-      if (winner === cons1) {
+      /*if (winner === cons1) {
         loser = cons2;
       } else {
         loser = cons1;
-      }
+      }*/
+      
+    // Asigna winner y loser
+    if (winner.id === cons1.id) {
+      winner = cons1;
+      loser = cons2;
+    } else {
+      winner = cons2;
+      loser = cons1;
+    }
+      
       loser.losses = Number(loser.losses) + 1;
       winner.wins = Number(winner.wins) + 1;
       if (createBattleDto.death) {
-        loser.status = "dead";
+        loser.status = SlaveStatus.Dead;
       }
 
-      await this.slaveRepository.save(loser);
-      await this.slaveRepository.save(winner);
+      //await this.slaveRepository.save(loser);
+      await this.slaveRepository.save([winner, loser]);
 
       const newBattle = this.battleRepository.create({
         cons1,

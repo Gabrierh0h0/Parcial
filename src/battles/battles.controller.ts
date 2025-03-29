@@ -11,36 +11,33 @@ export class BattlesController {
 
   //Usa la estrategia JWT para verificar si esta solicitud está autenticada
   
+  @UseGuards(AuthGuard('jwt'), AutenticadorGuard)
   @Post()
-  @UseGuards(AuthGuard)
   async create(@Body() createBattleDto: CreateBattleDto) {
     return this.battlesService.create(createBattleDto);
   }
 
-  
+  @UseGuards(AuthGuard('jwt'), AutenticadorGuard)
   @Get()
-  @UseGuards(AuthGuard)
   async findAll() {
     return this.battlesService.findAll();
   }
   
-  
+  @UseGuards(AuthGuard('jwt'), AutenticadorGuard)
   @Get(':id')
-  @UseGuards(AuthGuard(), AutenticadorGuard)
   async findOne(@Param('id') id: string) {
     return this.battlesService.findOne(id);
   }
 
   
   @Patch(':id')
-  @UseGuards(AuthGuard(), AutenticadorGuard)
+  @UseGuards(AuthGuard('jwt'), AutenticadorGuard)
   async update(@Param('id') id: string, @Body() updateBattleDto: UpdateBattleDto) {
     return this.battlesService.update(id, updateBattleDto);
   }
 
-  
+  @UseGuards(AuthGuard('jwt'), AutenticadorGuard)
   @Delete(':id')
-  @UseGuards(AuthGuard(), AutenticadorGuard)
   async remove(@Param('id') id: string) {
     return this.battlesService.remove(id);
   }

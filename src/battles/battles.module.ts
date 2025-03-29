@@ -5,13 +5,14 @@ import { Battle } from './entities/battle.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Slave } from 'src/slaves/entities/slave.entity';
 import { DictatorsModule } from 'src/dictators/dictators.module';
-import { JwtStrategy } from 'src/dictators/JwtStrategy';
-
 
 @Module({
   controllers: [BattlesController],
-  providers: [BattlesService ],
-  imports: [TypeOrmModule.forFeature([Battle,Slave]), DictatorsModule],
-  exports: [TypeOrmModule]
+  providers: [BattlesService],
+  imports: [
+    TypeOrmModule.forFeature([Battle, Slave]),
+    DictatorsModule,
+  ],
+  exports: [TypeOrmModule],
 })
 export class BattlesModule {}
