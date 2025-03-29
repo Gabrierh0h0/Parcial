@@ -21,15 +21,15 @@ export class BattlesService {
     if (!cons1) {
       throw new NotFoundException(`Slave with ID ${createBattleDto.cons1Id} not found`);
     }
-    if (cons1.status === SlaveStatus.Dead) {
-      throw new NotFoundException(`Slave with ID ${createBattleDto.cons1Id} is dead and cannot fight`);
+    if (cons1.status === SlaveStatus.Dead || cons1.status === SlaveStatus.Free) {
+      throw new NotFoundException(`Slave with ID ${createBattleDto.cons1Id} is dead or free and cannot fight`);
     }
     const cons2 = await this.slaveRepository.findOne({ where: { id: createBattleDto.cons2Id } });
     if (!cons2) {
       throw new NotFoundException(`Slave with ID ${createBattleDto.cons2Id} not found`);
     }
-    if (cons2.status === SlaveStatus.Dead) {
-      throw new NotFoundException(`Slave with ID ${createBattleDto.cons2Id} is dead and cannot fight`);
+    if (cons2.status === SlaveStatus.Dead || cons2.status === SlaveStatus.Free) {
+      throw new NotFoundException(`Slave with ID ${createBattleDto.cons2Id} is dead or free and cannot fight`);
     }
 
     let loser: Slave | null;
@@ -44,12 +44,6 @@ export class BattlesService {
       if (winner.id !== cons1.id && winner.id !== cons2.id) {
         throw new NotFoundException(`winner must be one of the contenders`);
       }
-
-      /*if (winner === cons1) {
-        loser = cons2;
-      } else {
-        loser = cons1;
-      }*/
       
     // Asigna winner y loser
     if (winner.id === cons1.id) {
@@ -66,7 +60,6 @@ export class BattlesService {
         loser.status = SlaveStatus.Dead;
       }
 
-      //await this.slaveRepository.save(loser);
       await this.slaveRepository.save([winner, loser]);
 
       const newBattle = this.battleRepository.create({
