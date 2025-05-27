@@ -17,6 +17,9 @@ import { ConfigModule } from '@nestjs/config';
       url: process.env.DATABASE_URL,
       autoLoadEntities: true,
       synchronize: true, // Recuerda cambiar a false en producción
+      ssl: {
+        rejectUnauthorized: false,
+      }
     })],
   controllers: [AppController],
   providers: [AppService],
